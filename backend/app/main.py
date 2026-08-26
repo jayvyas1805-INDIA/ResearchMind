@@ -11,7 +11,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.api import health
+from app.core.database import init_db
+from app.api import health, papers
 
 settings = get_settings()
 
@@ -22,8 +23,13 @@ os.makedirs(settings.INDEX_DIR, exist_ok=True)
 app = FastAPI(
     title=settings.APP_NAME,
     description="NLP & LLM-Powered Research Paper Intelligence Engine",
-    version="0.1.0",
+    version="0.2.0",
 )
+
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
 
 # --- CORS ---
 app.add_middleware(
@@ -36,6 +42,7 @@ app.add_middleware(
 
 # --- Routers ---
 app.include_router(health.router, prefix="/api")
+app.include_router(papers.router, prefix="/api")
 
 
 @app.get("/")

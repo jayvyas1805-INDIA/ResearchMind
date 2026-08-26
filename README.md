@@ -6,9 +6,10 @@ Upload research papers (PDF) and get structured summaries, semantic search,
 grounded Q&A (RAG), and side-by-side paper comparison — all with citations
 back to the source text.
 
-> **Status: Phase 1 — Project Setup.** This phase only sets up the skeleton
-> (backend health check + frontend shell). PDF processing, NLP, embeddings,
-> vector search, RAG, and LLM features are added in later phases.
+> **Status: Phase 2 — PDF Upload & Extraction.** Papers can now be uploaded,
+> validated, saved, and have their text extracted page-by-page and stored in
+> SQLite. NLP, embeddings, vector search, RAG, and LLM features are added in
+> later phases.
 
 ---
 
@@ -44,7 +45,10 @@ PaperMind/
 
 ## Prerequisites
 
-- Python 3.10+
+- **Python 3.12** (recommended). If you have multiple Python versions
+  installed (e.g. 3.12 and 3.13), use 3.12 explicitly — libraries needed in
+  later phases (spaCy, faiss-cpu, sentence-transformers) can lag behind the
+  newest Python release and may not yet have compatible wheels for 3.13.
 - Node.js 18+
 - (Later phases) [Ollama](https://ollama.com) installed locally, since the
   default LLM provider is a local open-source model.
@@ -55,28 +59,70 @@ PaperMind/
 
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+
+# Use Python 3.12 explicitly if your system default is a newer version
+python3.12 -m venv .venv          # Windows: py -3.12 -m venv .venv
+source .venv/bin/activate         # Windows: .venv\Scripts\activate
+
+# Confirm the venv is actually on 3.12 before installing anything
+python --version                  # should print Python 3.12.x
+
+pip install --upgrade pip
 pip install -r requirements.txt
 
-cp .env.example .env             # edit values if needed
+cp .env.example .env              # edit values if needed
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
 Backend will be running at: **http://localhost:8000**
 Interactive API docs: **http://localhost:8000/docs**
 
-### Endpoint to test (Phase 1)
+### Endpoints to test
 
+**Phase 1 — health check**
 ```
 GET http://localhost:8000/api/health
 ```
-
 Expected response:
-
 ```json
 { "status": "ok", "app": "PaperMind", "environment": "development" }
 ```
+
+**Phase 2 — upload a paper**
+```
+POST http://localhost:8000/api/papers/upload
+Content-Type: multipart/form-data
+Body: file=<your PDF>
+```
+Try it from the interactive docs at `http://localhost:8000/docs`, or via curl:
+```bash
+curl -X POST http://localhost:8000/api/papers/upload \
+  -F "file=@/path/to/some_paper.pdf"
+```
+Expected response:
+```json
+{
+  "paper_id": "b6e2b6b0-...",
+  "filename": "some_paper.pdf",
+  "page_count": 12,
+  "status": "processed"
+}
+```
+
+**Phase 2 — list uploaded papers**
+```
+GET http://localhost:8000/api/papers
+```
+
+**Phase 2 — get one paper's detail**
+```
+GET http://localhost:8000/api/papers/{paper_id}
+```
+
+**Error handling to verify:**
+- Upload a non-PDF file → `400 Bad Request`
+- Upload a PDF with no extractable text (e.g. a blank/scanned page) → `422 Unprocessable Entity`
+- Upload a file larger than `MAX_UPLOAD_SIZE_MB` → `400 Bad Request`
 
 ---
 
@@ -126,7 +172,7 @@ is read from environment variables.
 ## Roadmap (implemented phase by phase)
 
 - [x] Phase 1 — Project setup
-- [ ] Phase 2 — PDF upload & extraction
+- [x] Phase 2 — PDF upload & extraction
 - [ ] Phase 3 — NLP processing (section detection, NER, entity extraction)
 - [ ] Phase 4 — Chunking + embeddings + FAISS index
 - [ ] Phase 5 — Semantic search

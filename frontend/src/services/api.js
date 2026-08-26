@@ -12,3 +12,30 @@ export async function checkHealth() {
   const { data } = await api.get("/health");
   return data;
 }
+
+// --- Papers (Phase 2) ---
+
+export async function uploadPaper(file, onProgress) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const { data } = await api.post("/papers/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+    onUploadProgress: (event) => {
+      if (onProgress && event.total) {
+        onProgress(Math.round((event.loaded * 100) / event.total));
+      }
+    },
+  });
+  return data;
+}
+
+export async function listPapers() {
+  const { data } = await api.get("/papers");
+  return data;
+}
+
+export async function getPaper(paperId) {
+  const { data } = await api.get(`/papers/${paperId}`);
+  return data;
+}
