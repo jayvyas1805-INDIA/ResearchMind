@@ -71,17 +71,20 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 cp .env.example .env              # edit values if needed
-python -m uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --reload --port 8010
 ```
 
-Backend will be running at: **http://localhost:8000**
-Interactive API docs: **http://localhost:8000/docs**
+Backend will be running at: **http://localhost:8010**
+Interactive API docs: **http://localhost:8010/docs**
+
+> Using port 8010 (instead of the common 8000) to avoid clashing with other
+> local projects that often default to 8000.
 
 ### Endpoints to test
 
 **Phase 1 — health check**
 ```
-GET http://localhost:8000/api/health
+GET http://localhost:8010/api/health
 ```
 Expected response:
 ```json
@@ -90,13 +93,13 @@ Expected response:
 
 **Phase 2 — upload a paper**
 ```
-POST http://localhost:8000/api/papers/upload
+POST http://localhost:8010/api/papers/upload
 Content-Type: multipart/form-data
 Body: file=<your PDF>
 ```
-Try it from the interactive docs at `http://localhost:8000/docs`, or via curl:
+Try it from the interactive docs at `http://localhost:8010/docs`, or via curl:
 ```bash
-curl -X POST http://localhost:8000/api/papers/upload \
+curl -X POST http://localhost:8010/api/papers/upload \
   -F "file=@/path/to/some_paper.pdf"
 ```
 Expected response:
@@ -111,12 +114,12 @@ Expected response:
 
 **Phase 2 — list uploaded papers**
 ```
-GET http://localhost:8000/api/papers
+GET http://localhost:8010/api/papers
 ```
 
 **Phase 2 — get one paper's detail**
 ```
-GET http://localhost:8000/api/papers/{paper_id}
+GET http://localhost:8010/api/papers/{paper_id}
 ```
 
 **Error handling to verify:**
@@ -162,7 +165,7 @@ placeholder pages.
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `VITE_API_BASE_URL` | Backend API base URL | `http://localhost:8000/api` |
+| `VITE_API_BASE_URL` | Backend API base URL | `http://localhost:8010/api` |
 
 **No secrets are hardcoded anywhere in the codebase** — everything sensitive
 is read from environment variables.
