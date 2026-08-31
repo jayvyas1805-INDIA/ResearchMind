@@ -30,9 +30,27 @@ class PaperSummaryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PaperEntitiesOut(BaseModel):
+    persons: list[str] = []
+    organizations: list[str] = []
+    models: list[str] = []
+    datasets: list[str] = []
+    metrics: list[str] = []
+    methods: list[str] = []
+    technologies: list[str] = []
+
+
 class PaperDetailOut(PaperSummaryOut):
     authors: Optional[str] = None
     file_size_bytes: int
     error_message: Optional[str] = None
+
+    # Phase 3: NLP extraction results
+    abstract: Optional[str] = None
+    methodology: Optional[str] = None
+    results_section: Optional[str] = None
+    limitations: Optional[str] = None
+    conclusion: Optional[str] = None
+    entities: Optional[PaperEntitiesOut] = None
 
     model_config = ConfigDict(from_attributes=True)

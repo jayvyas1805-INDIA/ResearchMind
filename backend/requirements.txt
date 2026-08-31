@@ -12,8 +12,10 @@ SQLAlchemy==2.0.35
 # --- PDF processing (added Phase 2) ---
 PyMuPDF==1.24.10
 
-# --- NLP (added Phase 3) ---
+# --- NLP (Phase 3) ---
 spacy==3.7.6
+# After installing requirements, download the English model separately:
+#   python -m spacy download en_core_web_sm
 
 # --- Embeddings (added Phase 4) ---
 sentence-transformers==3.1.1

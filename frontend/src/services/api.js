@@ -39,3 +39,8 @@ export async function getPaper(paperId) {
   const { data } = await api.get(`/papers/${paperId}`);
   return data;
 }
+
+export async function analyzePaper(paperId) {
+  const { data } = await api.post(`/papers/${paperId}/analyze`);
+  return data;
+}

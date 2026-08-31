@@ -6,10 +6,12 @@ Upload research papers (PDF) and get structured summaries, semantic search,
 grounded Q&A (RAG), and side-by-side paper comparison — all with citations
 back to the source text.
 
-> **Status: Phase 2 — PDF Upload & Extraction.** Papers can now be uploaded,
-> validated, saved, and have their text extracted page-by-page and stored in
-> SQLite. NLP, embeddings, vector search, RAG, and LLM features are added in
-> later phases.
+> **Status: Phase 3 — NLP Processing.** Uploaded papers now automatically go
+> through text cleaning, section detection (Abstract/Methodology/Results/
+> Limitations/Conclusion/etc.), title & author heuristics, generic NER
+> (people/organizations), and custom rule-based extraction of research
+> entities (models, datasets, metrics, methods, technologies). Embeddings,
+> vector search, RAG, and LLM features are added in later phases.
 
 ---
 
@@ -80,6 +82,14 @@ Interactive API docs: **http://localhost:8010/docs**
 > Using port 8010 (instead of the common 8000) to avoid clashing with other
 > local projects that often default to 8000.
 
+> **Phase 3 requirement:** after `pip install -r requirements.txt`, also run:
+> ```bash
+> python -m spacy download en_core_web_sm
+> ```
+> The NLP pipeline needs this model for sentence segmentation and named
+> entity recognition — the server will raise a clear error on first use if
+> it's missing.
+
 ### Endpoints to test
 
 **Phase 1 — health check**
@@ -126,6 +136,31 @@ GET http://localhost:8010/api/papers/{paper_id}
 - Upload a non-PDF file → `400 Bad Request`
 - Upload a PDF with no extractable text (e.g. a blank/scanned page) → `422 Unprocessable Entity`
 - Upload a file larger than `MAX_UPLOAD_SIZE_MB` → `400 Bad Request`
+
+**Phase 3 — NLP processing (runs automatically as part of upload)**
+
+After upload, the response's `status` will be `processed` if NLP succeeded,
+or `failed` if extraction worked but NLP processing hit an error (check
+`error_message` on the paper detail endpoint in that case — the extracted
+text is still preserved either way).
+
+```
+GET http://localhost:8010/api/papers/{paper_id}
+```
+Now also returns: `abstract`, `methodology`, `results_section`,
+`limitations`, `conclusion`, and `entities` (models, datasets, metrics,
+methods, technologies, organizations, persons).
+
+```
+POST http://localhost:8010/api/papers/{paper_id}/analyze
+```
+Re-runs the NLP pipeline on a paper's already-extracted text (no re-upload
+needed) — useful after tweaking the entity keyword lists in
+`app/utils/research_terms.py`.
+
+On the frontend: click a paper's title on the Dashboard to open its detail
+page, showing detected sections and extracted entities as chips, with a
+"Re-run NLP analysis" button.
 
 ---
 
@@ -176,6 +211,7 @@ is read from environment variables.
 
 - [x] Phase 1 — Project setup
 - [x] Phase 2 — PDF upload & extraction
+- [x] Phase 3 — NLP processing
 - [ ] Phase 3 — NLP processing (section detection, NER, entity extraction)
 - [ ] Phase 4 — Chunking + embeddings + FAISS index
 - [ ] Phase 5 — Semantic search

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { listPapers } from "../services/api.js";
 import StatusBadge from "../components/StatusBadge.jsx";
 
@@ -69,8 +70,18 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {papers.map((paper) => (
-                  <tr key={paper.id} className="border-t border-slate-100">
-                    <td className="px-4 py-3 text-slate-700">{paper.filename}</td>
+                  <tr
+                    key={paper.id}
+                    className="border-t border-slate-100 hover:bg-slate-50"
+                  >
+                    <td className="px-4 py-3 text-slate-700">
+                      <Link
+                        to={`/papers/${paper.id}`}
+                        className="font-medium text-brand-600 hover:underline"
+                      >
+                        {paper.title || paper.filename}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3 text-slate-700">{paper.page_count}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={paper.processing_status} />
