@@ -40,6 +40,11 @@ class Paper(Base):
     # to re-parse the PDF from scratch.
     extracted_text = Column(Text, nullable=True)
 
+    # Page-level text, stored as JSON: [{"page_number": 1, "text": "..."}, ...]
+    # Preserved separately from extracted_text so Phase 4 chunking can tag
+    # each chunk with its originating page number.
+    pages_json = Column(Text, nullable=True)
+
     # --- Phase 3: NLP extraction results ---
     # Stored as JSON strings (SQLite has no native JSON type in this setup).
     abstract = Column(Text, nullable=True)

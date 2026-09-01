@@ -6,12 +6,12 @@ Upload research papers (PDF) and get structured summaries, semantic search,
 grounded Q&A (RAG), and side-by-side paper comparison — all with citations
 back to the source text.
 
-> **Status: Phase 3 — NLP Processing.** Uploaded papers now automatically go
-> through text cleaning, section detection (Abstract/Methodology/Results/
-> Limitations/Conclusion/etc.), title & author heuristics, generic NER
-> (people/organizations), and custom rule-based extraction of research
-> entities (models, datasets, metrics, methods, technologies). Embeddings,
-> vector search, RAG, and LLM features are added in later phases.
+> **Status: Phase 4 — Chunking + Embeddings.** Every processed paper is now
+> automatically split into sentence-aware chunks (tagged with page number
+> and detected section), embedded with Sentence-Transformers, and indexed
+> in a persistent FAISS vector store. Semantic search is not yet exposed via
+> the API/UI — that's Phase 5. Verify indexing works using the CLI script
+> described below. RAG and LLM features are added in later phases.
 
 ---
 
@@ -162,6 +162,28 @@ On the frontend: click a paper's title on the Dashboard to open its detail
 page, showing detected sections and extracted entities as chips, with a
 "Re-run NLP analysis" button.
 
+**Phase 4 — chunking + embeddings + FAISS (runs automatically after NLP)**
+
+Every successfully-processed paper is automatically chunked and indexed —
+no separate step needed. There's no public search API yet (that's Phase 5),
+so verify indexing worked using the included CLI script:
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/test_retrieval.py <paper_id> "what dataset was used"
+```
+
+Get a `paper_id` from `GET /api/papers`. Expected output: the top 5 matching
+chunks with similarity scores, page numbers, and detected sections.
+
+> First run downloads the `all-MiniLM-L6-v2` model (~90MB) from Hugging
+> Face automatically — needs internet once, then it's cached locally.
+
+The FAISS index is persisted at `backend/indexes/papermind.faiss` and
+reloaded on server restart (no rebuild needed). Re-uploading or re-analyzing
+a paper safely re-indexes it (old vectors are removed first).
+
 ---
 
 ## Frontend — Setup & Run
@@ -191,6 +213,10 @@ placeholder pages.
 | `UPLOAD_DIR` | Where uploaded PDFs are stored | `./data/uploads` |
 | `INDEX_DIR` | Where the FAISS index is persisted | `./indexes` |
 | `EMBEDDING_MODEL` | Sentence-Transformers model name | `all-MiniLM-L6-v2` |
+| `EMBEDDING_DIM` | Must match the model's output dimension | `384` |
+| `CHUNK_TARGET_WORDS` | Target words per chunk | `180` |
+| `CHUNK_MIN_WORDS` | Trailing chunks smaller than this get merged | `40` |
+| `DEFAULT_TOP_K` | Default number of search results | `5` |
 | `LLM_PROVIDER` | `ollama` \| `openai` \| `gemini` | `ollama` |
 | `LLM_MODEL` | Model name for the chosen provider | `llama3.1` |
 | `OLLAMA_BASE_URL` | Local Ollama server URL | `http://localhost:11434` |
@@ -212,6 +238,7 @@ is read from environment variables.
 - [x] Phase 1 — Project setup
 - [x] Phase 2 — PDF upload & extraction
 - [x] Phase 3 — NLP processing
+- [x] Phase 4 — Chunking + embeddings + FAISS index
 - [ ] Phase 3 — NLP processing (section detection, NER, entity extraction)
 - [ ] Phase 4 — Chunking + embeddings + FAISS index
 - [ ] Phase 5 — Semantic search

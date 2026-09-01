@@ -15,7 +15,7 @@ from app.schemas.paper import (
     PaperSummaryOut,
     PaperUploadResponse,
 )
-from app.services import nlp_service, pdf_service
+from app.services import indexing_service, nlp_service, pdf_service
 from app.utils.exceptions import PDFEmptyError, PDFExtractionError, PDFValidationError
 
 logger = logging.getLogger("papermind.papers")
@@ -99,6 +99,9 @@ async def upload_paper(file: UploadFile = File(...), db: Session = Depends(get_d
         paper.conclusion = nlp_result.sections.get("conclusion")
         paper.sections_json = json.dumps(nlp_result.sections)
         paper.entities_json = json.dumps(asdict(nlp_result.entities))
+        paper.pages_json = json.dumps(
+            [{"page_number": p.page_number, "text": nlp_service.clean_text(p.text)} for p in result.pages]
+        )
         paper.processing_status = ProcessingStatus.PROCESSED
     except Exception as exc:
         logger.exception("NLP processing failed for '%s'", file.filename)
@@ -113,6 +116,19 @@ async def upload_paper(file: UploadFile = File(...), db: Session = Depends(get_d
         db.rollback()
         logger.exception("Database error saving paper '%s'", file.filename)
         raise HTTPException(status_code=500, detail="Failed to save paper record.") from exc
+
+    # --- Phase 4: chunk, embed, and index the paper for semantic search ---
+    # Indexing failure doesn't downgrade an otherwise-successful NLP result —
+    # the paper's text/sections/entities remain usable even if search isn't
+    # available for it yet. We surface the problem via error_message instead.
+    if paper.processing_status == ProcessingStatus.PROCESSED:
+        try:
+            chunk_count = indexing_service.index_paper(paper, db)
+            logger.info("Indexed %d chunks for paper %s", chunk_count, paper.id)
+        except Exception as exc:
+            logger.exception("Indexing failed for paper %s", paper.id)
+            paper.error_message = f"Indexed text, but semantic indexing failed: {exc}"
+            db.commit()
 
     return PaperUploadResponse(
         paper_id=paper.id,
@@ -139,9 +155,9 @@ def get_paper(paper_id: str, db: Session = Depends(get_db)):
 @router.post("/{paper_id}/analyze", response_model=PaperDetailOut)
 def analyze_paper(paper_id: str, db: Session = Depends(get_db)):
     """
-    Re-run the NLP pipeline on a paper's already-extracted text.
-    Useful for re-processing without re-uploading the PDF (e.g. after
-    updating the entity keyword lists).
+    Re-run the NLP pipeline (and re-index for search) on a paper's
+    already-extracted text. Useful for re-processing without re-uploading
+    the PDF (e.g. after updating the entity keyword lists or chunking logic).
     """
     paper = db.query(Paper).filter(Paper.id == paper_id).first()
     if not paper:
@@ -169,4 +185,14 @@ def analyze_paper(paper_id: str, db: Session = Depends(get_db)):
 
     db.commit()
     db.refresh(paper)
+
+    if paper.processing_status == ProcessingStatus.PROCESSED and paper.pages_json:
+        try:
+            chunk_count = indexing_service.index_paper(paper, db)
+            logger.info("Re-indexed %d chunks for paper %s", chunk_count, paper.id)
+        except Exception as exc:
+            logger.exception("Re-indexing failed for paper %s", paper_id)
+            paper.error_message = f"Re-analyzed, but re-indexing failed: {exc}"
+            db.commit()
+
     return _paper_to_detail(paper)

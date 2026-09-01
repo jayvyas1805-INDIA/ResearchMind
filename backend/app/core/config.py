@@ -32,6 +32,14 @@ class Settings(BaseSettings):
 
     # --- Embeddings ---
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    EMBEDDING_DIM: int = 384  # must match EMBEDDING_MODEL's output dimension
+
+    # --- Chunking ---
+    CHUNK_TARGET_WORDS: int = 180
+    CHUNK_MIN_WORDS: int = 40  # trailing chunks smaller than this get merged into the previous one
+
+    # --- Retrieval ---
+    DEFAULT_TOP_K: int = 5
 
     # --- LLM provider (configurable; default = local open-source via Ollama) ---
     LLM_PROVIDER: str = "ollama"
