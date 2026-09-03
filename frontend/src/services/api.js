@@ -44,3 +44,13 @@ export async function analyzePaper(paperId) {
   const { data } = await api.post(`/papers/${paperId}/analyze`);
   return data;
 }
+
+// --- Search (Phase 5) ---
+
+export async function searchPaper(paperId, query, topK) {
+  const { data } = await api.post(`/papers/${paperId}/search`, {
+    query,
+    top_k: topK || undefined,
+  });
+  return data;
+}

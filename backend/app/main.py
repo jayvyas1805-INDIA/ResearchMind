@@ -1,8 +1,5 @@
 """
 PaperMind — FastAPI application entrypoint.
-
-Phase 1: project skeleton only. No PDF/NLP/embedding/RAG/LLM logic yet —
-those are added in later phases.
 """
 
 import os
@@ -12,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.core.database import init_db
-from app.api import health, papers
+from app.api import health, papers, search
 
 settings = get_settings()
 
@@ -43,6 +40,7 @@ app.add_middleware(
 # --- Routers ---
 app.include_router(health.router, prefix="/api")
 app.include_router(papers.router, prefix="/api")
+app.include_router(search.router, prefix="/api")
 
 
 @app.get("/")

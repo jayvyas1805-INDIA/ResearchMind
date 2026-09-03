@@ -5,8 +5,7 @@ Provides search(query, paper_id=None, top_k=5): embeds the query, searches
 the FAISS index, and resolves the resulting vector ids back to their Chunk
 rows (text, page, section) via the database.
 
-Not yet exposed via an API endpoint — that's Phase 5. This module is written
-so Phase 5 only has to add a thin route around it.
+Exposed via the API in Phase 5 (see app/api/search.py).
 """
 
 from dataclasses import dataclass
@@ -36,6 +35,7 @@ def search(
     db: Session,
     paper_id: Optional[str] = None,
     top_k: int = None,
+    min_score: Optional[float] = None,
 ) -> list[SearchResult]:
     """
     Semantic search over indexed chunks.
@@ -45,9 +45,14 @@ def search(
     small/medium (single-user, student-project) scale. A dedicated
     per-paper index or metadata filtering would be the next step if this
     needs to scale further.
+
+    min_score: results with similarity below this are dropped as not
+    relevant. Defaults to settings.MIN_SIMILARITY_THRESHOLD.
     """
     if top_k is None:
         top_k = settings.DEFAULT_TOP_K
+    if min_score is None:
+        min_score = settings.MIN_SIMILARITY_THRESHOLD
 
     if not query or not query.strip():
         return []
@@ -67,6 +72,8 @@ def search(
 
     results: list[SearchResult] = []
     for chunk_id, score in raw_results:
+        if score < min_score:
+            continue
         chunk = chunk_by_id.get(chunk_id)
         if chunk is None:
             continue  # stale vector (e.g. chunk deleted but index not yet updated)

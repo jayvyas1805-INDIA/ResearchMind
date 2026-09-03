@@ -91,13 +91,21 @@ export default function PaperDetail() {
         </div>
       )}
 
-      <button
-        onClick={handleReanalyze}
-        disabled={reanalyzing}
-        className="mt-4 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-      >
-        {reanalyzing ? "Re-analyzing…" : "Re-run NLP analysis"}
-      </button>
+      <div className="mt-4 flex gap-3">
+        <button
+          onClick={handleReanalyze}
+          disabled={reanalyzing}
+          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        >
+          {reanalyzing ? "Re-analyzing…" : "Re-run NLP analysis"}
+        </button>
+        <Link
+          to={`/search?paper=${paper.id}`}
+          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          Search this paper
+        </Link>
+      </div>
 
       <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-3">
         <div className="md:col-span-2">

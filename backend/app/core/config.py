@@ -40,6 +40,7 @@ class Settings(BaseSettings):
 
     # --- Retrieval ---
     DEFAULT_TOP_K: int = 5
+    MIN_SIMILARITY_THRESHOLD: float = 0.2  # results below this score are dropped as not relevant
 
     # --- LLM provider (configurable; default = local open-source via Ollama) ---
     LLM_PROVIDER: str = "ollama"
