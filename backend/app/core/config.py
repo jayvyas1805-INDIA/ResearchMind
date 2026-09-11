@@ -42,6 +42,12 @@ class Settings(BaseSettings):
     DEFAULT_TOP_K: int = 5
     MIN_SIMILARITY_THRESHOLD: float = 0.2  # results below this score are dropped as not relevant
 
+    # --- Groundedness checking (NLI-based hallucination detection) ---
+    GROUNDEDNESS_CHECK_ENABLED: bool = True
+    NLI_MODEL: str = "cross-encoder/nli-deberta-v3-small"
+    GROUNDEDNESS_SUPPORT_THRESHOLD: float = 0.5       # per-sentence entailment cutoff
+    GROUNDEDNESS_SENTENCE_RATIO_THRESHOLD: float = 0.6  # fraction of sentences needed to call the answer "grounded"
+
     # --- LLM provider (configurable; default = local open-source via Ollama) ---
     LLM_PROVIDER: str = "ollama"
     LLM_MODEL: str = "llama3.1"

@@ -97,18 +97,29 @@ def _best_matching_section(chunk_text: str, sections: Dict[str, str]) -> str:
     return best_name or "unclassified"
 
 
-def chunk_paper(pages: List[PageInput], sections: Dict[str, str]) -> List[ChunkData]:
+def chunk_paper(
+    pages: List[PageInput],
+    sections: Dict[str, str],
+    target_words: int = None,
+    min_words: int = None,
+) -> List[ChunkData]:
     """
     Full chunking pipeline for one paper.
 
     Args:
         pages: page-level text, in page order.
         sections: canonical_section_name -> section content, from Phase 3.
+        target_words / min_words: override settings.CHUNK_TARGET_WORDS /
+            settings.CHUNK_MIN_WORDS for this call (used by the ablation
+            study to compare chunk sizes without touching global config).
 
     Returns:
         Ordered list of ChunkData, chunk_index assigned sequentially across
         the whole paper (not reset per page).
     """
+    target_words = target_words if target_words is not None else settings.CHUNK_TARGET_WORDS
+    min_words = min_words if min_words is not None else settings.CHUNK_MIN_WORDS
+
     all_chunks: List[ChunkData] = []
     chunk_index = 0
 
@@ -122,8 +133,8 @@ def chunk_paper(pages: List[PageInput], sections: Dict[str, str]) -> List[ChunkD
 
         page_chunks = _group_sentences_into_chunks(
             sentences,
-            target_words=settings.CHUNK_TARGET_WORDS,
-            min_words=settings.CHUNK_MIN_WORDS,
+            target_words=target_words,
+            min_words=min_words,
         )
 
         for chunk_text in page_chunks:

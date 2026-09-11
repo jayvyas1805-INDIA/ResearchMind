@@ -27,6 +27,7 @@ class Paper(Base):
 
     filename = Column(String, nullable=False)
     stored_path = Column(String, nullable=False)
+    content_hash = Column(String, nullable=True, index=True)  # SHA-256, for duplicate-upload detection
 
     # Metadata — populated by the NLP pipeline (Phase 3). Nullable since it's
     # only available after processing.
@@ -52,6 +53,7 @@ class Paper(Base):
     results_section = Column(Text, nullable=True)
     limitations = Column(Text, nullable=True)
     conclusion = Column(Text, nullable=True)
+    summary_json = Column(Text, nullable=True)  # cached Phase 7 structured summary
     sections_json = Column(Text, nullable=True)   # full section_name -> text map
     entities_json = Column(Text, nullable=True)   # models/datasets/metrics/etc.
 

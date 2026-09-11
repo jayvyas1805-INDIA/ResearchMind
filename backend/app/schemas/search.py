@@ -10,6 +10,10 @@ class SearchRequest(BaseModel):
 
     query: str = Field(..., min_length=1)
     top_k: Optional[int] = Field(default=None, ge=1, le=50)
+    use_hybrid: bool = Field(
+        default=False,
+        description="If true, fuse BM25 lexical search with vector search via Reciprocal Rank Fusion.",
+    )
 
 
 class SearchResultOut(BaseModel):
@@ -25,4 +29,5 @@ class SearchResponse(BaseModel):
     query: str
     paper_id: str
     result_count: int
+    method: str  # "vector" or "hybrid"
     results: list[SearchResultOut]

@@ -268,6 +268,25 @@ class NLPResult:
     sentence_count: int
 
 
+def apply_nlp_result_to_paper(paper, nlp_result) -> None:
+    """
+    Copy an NLPResult's fields onto a Paper ORM object. Shared by the
+    upload and re-analyze endpoints so the mapping only lives in one place.
+    """
+    import json
+    from dataclasses import asdict
+
+    paper.title = nlp_result.title
+    paper.authors = nlp_result.authors
+    paper.abstract = nlp_result.sections.get("abstract")
+    paper.methodology = nlp_result.sections.get("methodology")
+    paper.results_section = nlp_result.sections.get("results") or nlp_result.sections.get("experiments")
+    paper.limitations = nlp_result.sections.get("limitations")
+    paper.conclusion = nlp_result.sections.get("conclusion")
+    paper.sections_json = json.dumps(nlp_result.sections)
+    paper.entities_json = json.dumps(asdict(nlp_result.entities))
+
+
 def run_nlp_pipeline(raw_text: str) -> NLPResult:
     """
     Full Phase 3 pipeline:

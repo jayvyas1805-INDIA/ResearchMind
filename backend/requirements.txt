@@ -26,3 +26,6 @@ faiss-cpu==1.8.0.post1
 # --- Testing ---
 pytest==8.3.3
 httpx==0.27.2
+
+# --- Hybrid retrieval (lexical + vector fusion) ---
+rank-bm25==0.2.2

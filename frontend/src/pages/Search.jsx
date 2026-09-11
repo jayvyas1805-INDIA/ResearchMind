@@ -25,6 +25,8 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
+  const [useHybrid, setUseHybrid] = useState(false);
+  const [method, setMethod] = useState("");
 
   useEffect(() => {
     listPapers()
@@ -48,7 +50,8 @@ export default function Search() {
     setError("");
     setHasSearched(true);
     try {
-      const data = await searchPaper(paperId, query.trim());
+      const data = await searchPaper(paperId, query.trim(), null, useHybrid);
+      setMethod(data.method);
       setResults(data.results);
     } catch (err) {
       const detail = err?.response?.data?.detail;
@@ -120,6 +123,15 @@ export default function Search() {
                 {loading ? "Searching…" : "Search"}
               </button>
             </div>
+            <label className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+              <input
+                type="checkbox"
+                checked={useHybrid}
+                onChange={(e) => setUseHybrid(e.target.checked)}
+                className="rounded border-slate-300"
+              />
+              Use hybrid search (BM25 keyword + vector, fused via RRF)
+            </label>
           </div>
         </form>
       )}
@@ -138,6 +150,7 @@ export default function Search() {
 
       {results && results.length > 0 && (
         <div className="mt-8 space-y-4">
+          <p className="text-xs uppercase tracking-wide text-slate-400">Method: {method}</p>
           {results.map((r) => (
             <div
               key={r.chunk_id}

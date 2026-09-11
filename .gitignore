@@ -18,3 +18,7 @@ frontend/.env
 .DS_Store
 .vscode/
 .idea/
+backend/eval/results/*.json
+backend/training/data/*.spacy
+backend/training/data/gold.jsonl
+backend/training/model/

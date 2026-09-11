@@ -10,6 +10,7 @@ Kept independent of FastAPI so it can be reused/tested without spinning up
 the API layer.
 """
 
+import hashlib
 import os
 import uuid
 from dataclasses import dataclass, field
@@ -40,6 +41,7 @@ class ExtractionResult:
     full_text: str
     pages: List[PageText] = field(default_factory=list)
     file_size_bytes: int = 0
+    content_hash: str = ""
 
 
 def validate_upload(filename: str, content_type: str, file_size_bytes: int) -> None:
@@ -133,6 +135,10 @@ def extract_text(stored_path: str) -> ExtractionResult:
         doc.close()
 
 
+def compute_content_hash(raw_bytes: bytes) -> str:
+    return hashlib.sha256(raw_bytes).hexdigest()
+
+
 def process_upload(raw_bytes: bytes, original_filename: str, content_type: str) -> ExtractionResult:
     """
     Full ingestion pipeline: validate → save → extract.
@@ -143,7 +149,9 @@ def process_upload(raw_bytes: bytes, original_filename: str, content_type: str) 
     stored_path, _ = save_upload(raw_bytes, original_filename)
 
     try:
-        return extract_text(stored_path)
+        result = extract_text(stored_path)
+        result.content_hash = compute_content_hash(raw_bytes)
+        return result
     except (PDFValidationError, PDFEmptyError, PDFExtractionError):
         # Clean up the saved file if extraction failed, so we don't
         # accumulate orphaned uploads.
