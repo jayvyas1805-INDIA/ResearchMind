@@ -1,0 +1,16 @@
+{
+  "paper_id": "fixture-paper-001",
+  "description": "Ground-truth Q&A for the synthetic fixture paper (see seed_fixture_paper.py). Each question's 'relevant_pages' lists the page number(s) where the correct answer actually appears.",
+  "questions": [
+    {"question": "How many emotion categories does the model classify text into?", "relevant_pages": [1]},
+    {"question": "Which deep learning architectures are compared in this paper?", "relevant_pages": [1, 2]},
+    {"question": "What technique is used to address class imbalance?", "relevant_pages": [2]},
+    {"question": "What preprocessing steps are applied to the text?", "relevant_pages": [2]},
+    {"question": "Which model achieved the highest accuracy?", "relevant_pages": [3]},
+    {"question": "What was the approximate accuracy of the best model?", "relevant_pages": [3]},
+    {"question": "Which model performed worst?", "relevant_pages": [3]},
+    {"question": "What are the limitations of this study?", "relevant_pages": [4]},
+    {"question": "What future work is suggested?", "relevant_pages": [4]},
+    {"question": "What frameworks were used to build the models?", "relevant_pages": [2]}
+  ]
+}
